@@ -1,2 +1,2 @@
 # pwsh-projects
-Provide some practical powershell tool sets.
+Provide some powershell module sets.
