@@ -1,2 +1,2 @@
-# pwsh-projects
-Provide some powershell module sets.
+# JcStudio
+Provide some practical powershell tool sets.
