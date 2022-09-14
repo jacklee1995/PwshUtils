@@ -19,7 +19,7 @@ class ValueError {
 }
 
 class StaticFuncs {
-    static [System.Collections.ArrayList]range ([int]$a, [int]$b){
+    static [System.Collections.ArrayList]range([int]$a, [int]$b){
         $temp = [System.Collections.ArrayList]@();
         if($a -eq $b){
             return $temp;
@@ -111,7 +111,7 @@ class StaticFuncs {
         return ""
     }
 
-    <# date_begin 或 date_end 的格式如 2022/08/15 #>
+    <# 指定起始日期，返回以这两个日期为起止期日的日期段列表 date_begin 或 date_end 的格式如 2022/08/15 #>
     static [string[]] datelist([string]$date_begin, [string]$date_end) {
         $year_begin, $month_begin, $day_begin = $date_begin.Split("/");
         $year_end,   $month_end,   $day_end   = $date_end.Split("/");
@@ -656,6 +656,28 @@ class Date {
         return $temp
     }
 
+    <# 从当前开始，向后 n-1 个 Date 对象构成一个列表返回 #>
+    [Date[]]ndaylist_next([int]$n){
+        $today = [Date]::new($this.year, $this.month, $this.day);
+        $temp = [System.Collections.ArrayList]::new();
+        foreach ($i in [StaticFuncs]::range($n)) { 
+            $temp.Add($today);
+            $today = $today.next();
+        }
+        return $temp
+    }
+
+    <# 从当前开始，向前 n-1 个 Date 对象构成一个列表返回 #>
+    [Date[]]ndaylist_last([int]$n){
+        $today = [Date]::new($this.year, $this.month, $this.day);
+        $temp = [System.Collections.ArrayList]::new();
+        foreach ($i in [StaticFuncs]::range($n)) { 
+            $temp.Add($today);
+            $today = $today.last();
+        }
+        return $temp
+    }
+
     [string]get_value(){
         $m = $this.month.ToString()
         if($m.Length -eq 1){
@@ -702,11 +724,8 @@ class DateTime {
     <# 下一秒，可用作秒计时器 #>
     [void] next_second(){
         $this.time.next_second();
-        # 若产生进位
         if($this.time.c._value -eq [CarryEnum]::CARRY){
-            # 完成从时间到日期的进位
             $this.date.next();
-            # 清空进位标志
             $this.time.c.clear();
         }
     }
@@ -714,11 +733,8 @@ class DateTime {
     <# 上一分钟，可用作分倒计时器 #>
     [void] last_minute(){
         $this.time.last_minute();
-        # 若产生退位
         if($this.time.c._value -eq [CarryEnum]::BACK){
-            # 完成从时间到日期的退位
             $this.date.last();
-            # 清空退位标志
             $this.time.c.clear();
         }
     }
@@ -726,11 +742,8 @@ class DateTime {
     <# 下一分钟，可用作分计时器 #>
     [void] next_minute(){
         $this.time.next_minute();
-        # 若产生进位
         if($this.time.c._value -eq [CarryEnum]::CARRY){
-            # 完成从时间到日期的进位
             $this.date.next();
-            # 清空进位标志
             $this.time.c.clear();
         }
     }
@@ -750,28 +763,21 @@ class DateTime {
     <# 下一小时，可用作小时计时器 #>
     [void] next_hour(){
         $this.time.next();
-        # 若产生进位
         if($this.time.c._value -eq [CarryEnum]::CARRY){
-            # 完成从时间到日期的进位
             $this.date.next();
-            # 清空进位标志
             $this.time.c.clear();
         }
     }
 
-    <# 前一天 #>
     [void] last_day(){
         $this.date.last();
     }
 
-    <# 后一天 #>
     [void] next_day(){
         $this.date.next();
     }
 
-    <# 下个月这个时候 #>
     [void] next_month(){
-        # 如果本月是2月
         if($this.date.month -eq 2) {
             if($this.date.is_leap_year()){
                 $this.date = $this.date.ndays_later(29);
@@ -779,17 +785,14 @@ class DateTime {
                 $this.date = $this.date.ndays_later(28);
             }
         }
-        # 如果本月是31天的大月
         elseif([StaticFuncs]::is_big_month($this.date.month)) {
             $this.date = $this.date.ndays_later(31);
         }
-        # 否则是30天的小月
         else{
             $this.date = $this.date.ndays_later(30);
         }
     }
 
-    <# 下一年这个时候 #>
     [void] next_year(){
         if($this.date.year.is_leap_year()){
             if($this.date.year -eq 2){
@@ -843,3 +846,11 @@ class DateTime {
 # $next = $data.ndays_ago(1);
 # $next.get_value();
 
+# n 天列表（往后数n天、往前数n天）
+# $data = [Date]::new("2020/01/01");
+# $nxt = $data.ndaylist_next(367);
+# $lst = $data.ndaylist_last(367);
+# foreach ($i in $lst) {
+#     # Write-Host "------------------"
+#     Write-Host $i.get_value();
+# }
