@@ -1,2 +1,2 @@
 # JcStudio
-Provide some practical powershell tool sets.
+Provide some practical powershell utils.
